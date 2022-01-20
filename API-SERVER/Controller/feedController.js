@@ -17,14 +17,19 @@ exports.getPost=(req,res,next)=>{
 
 
 exports.createPost=async (req,res,next)=>{
-    try{
-        const error = validationResult(req);
-        if(!error.isEmpty){
-            return res.status(422).json({
-                message:"Validation Error got Failed Entered Data is in Correct",
-                error:error.array()
-            })
-        }
+    try{ 
+        // const err = validationResult(req);
+        
+        // if(!err.isEmpty()){
+        //     console.log("I am in If Block")
+        //     const error = new Error("Validation Failed Entered Data is Incorrect");
+        //     error.statusCode = 422;
+        //     throw new Error(next(error));
+        //     // next(error);
+           
+        // }
+        
+       
         title = req.body.title;
         content = req.body.content;
     
@@ -43,7 +48,18 @@ exports.createPost=async (req,res,next)=>{
             // post:{id:new Date().toISOString(),title :title,content:content} before adding to data base
             post: result
         })
-    }catch(e){
+    }catch(error){
+        // console.log("Iam in Catch block");
+        // // console.log(Error);
+        // console.log(error);
+        // if(error.statusCode===422){
+        //     console.log("Iam in 422 if blok of catch")
+        //     next(error);
+        // }else if(!error.statusCode){
+        //     error.statusCode=500;
+        //     next(error);
+        // }
+
 
     }
     

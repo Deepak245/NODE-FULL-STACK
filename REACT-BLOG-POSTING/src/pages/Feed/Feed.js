@@ -126,6 +126,7 @@ class Feed extends Component {
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
+          console.log(res);
           throw new Error('Creating or editing a post failed!');
         }
         return res.json();
