@@ -12,17 +12,17 @@ const validations = require("./sequentialValidation");
 //         const result = await validation.run(req);
 //         if (result.errors.length) break;
 //       }
-  
+
 //       const errors = validationResult(req);
 //       if (errors.isEmpty()) {
 //         return next();
 //       }
-  
+
 //       res.status(400).json({ errors: errors.array() });
 //     };
 //   };
 
-router.get("/posts",feedController.getPost);
+router.get("/posts",feedController.getPosts);
 
 router.post("/post",
 validations.validate([
@@ -32,6 +32,7 @@ validations.validate([
 ,feedController.createPost);
 
 
+router.get('/post/:postId',feedController.getPost);
 
 
 
