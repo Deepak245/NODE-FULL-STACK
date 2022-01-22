@@ -12,16 +12,18 @@ const feedRoutes = require("./Router/feedRouter");
 const app = express();
 
 app.use(bodyParser.json());
-
-
 app.use((req,res,next)=>{
     res.setHeader("Access-Control-Allow-Origin","*"); // allows all the websites
     res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,PATCH,DELETE,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers","Content-Type,Authorization");
     next();
 })
+
+
 app.use("/images",express.static(path.join(__dirname,"images")));
 app.use("/feed",feedRoutes);
+
+
 
 app.use((error,req,res,next)=>{
     const status = error.statusCode;

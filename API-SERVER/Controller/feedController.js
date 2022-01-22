@@ -17,6 +17,7 @@ const Post = require("../Modals/postModalMongo");
 exports.getPosts=async (req,res,next)=>{
    try{
      posts = await Post.find();
+     // console.log(posts);
      res
         .status(200)
         .json({ message: 'Fetched posts successfully.', posts: posts });
@@ -24,17 +25,17 @@ exports.getPosts=async (req,res,next)=>{
    catch(error){
      next(error);
    }
-    res.status(200).json({
-        posts:[{
-            title:"first Post",
-            content:"This is First Post",
-            imageUrl:"images/Smiley_Face.jpg",
-            creator:{name:"DEEPAK"},
-            createdAt:new Date(),
-            _id:"1"
-
-        }]
-    })
+    // res.status(200).json({
+    //     posts:[{
+    //         title:"first Post",
+    //         content:"This is First Post",
+    //         imageUrl:"images/Smiley_Face.jpg",
+    //         creator:{name:"DEEPAK"},
+    //         createdAt:new Date(),
+    //         _id:"1"
+    //
+    //     }]
+    // })
 }
 
 exports.createPost=async (req,res,next)=>{
@@ -89,8 +90,10 @@ exports.createPost=async (req,res,next)=>{
 
 exports.getPost = async (req,res,next)=>{
   const postId = req.params.postId;
+  console.log(postId);
   try{
     post = await Post.findById(postId);
+    // console.log(post);
     res.status(200).json({message:"Post Fetched",post:post});
   }
   catch(error){
