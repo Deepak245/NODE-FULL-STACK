@@ -89,16 +89,31 @@ exports.createPost=async (req,res,next)=>{
 
 
 exports.getPost = async (req,res,next)=>{
+  const error = validationResult(req);
   const postId = req.params.postId;
-  console.log(postId);
+  // console.log(postId);
   try{
     post = await Post.findById(postId);
+    const error = validationResult(res);
+    if(post===null){
+
+        res.status(404).json({ message:"Not able to Fetch Post from DB" });
+       throw new Error("No Response")
+
+
+    }
     // console.log(post);
     res.status(200).json({message:"Post Fetched",post:post});
   }
   catch(error){
-    return res.status(404).json({ message:"Not able to Fetch Post from DB" });
-    next();
+
+    if(error ==="No Response"){
+      console.log("In catch if block")
+      error.statusCode=404;
+      next(error);
+    }
+    // return res.status(404).json({ message:"Not able to Fetch Post from DB" });
+
   }
 
 }
