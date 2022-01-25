@@ -24,16 +24,25 @@ const validations = require("./sequentialValidation");
 
 router.get("/posts",feedController.getPosts);
 
+
+router.put('/post/:postId',validations.validate([
+        body("title").trim().isLength({min:5}),
+        body("content").trim().isLength({min:5})
+    ]),feedController.updatePost);
+
 router.post("/post",
 validations.validate([
-        body("title").trim().isLength({min:7}),
-        body("content").trim().isLength({min:7})
+        body("title").trim().isLength({min:5}),
+        body("content").trim().isLength({min:5})
     ])
 ,feedController.createPost);
 
 
+
 router.get('/post/:postId',feedController.getPost);
 
+
+router.delete('/post/:postId',feedController.deletePost);
 
 
 

@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const {validationResult} =require("express-validator");
 const Post = require("../Modals/postModalMongo");
 
@@ -51,14 +53,18 @@ exports.createPost=async (req,res,next)=>{
 
         // }
 
-
+        if(!req.file){
+          res.status(422).json({ message:"No File in Request" });
+          throw new Error("No File in Request")
+        }
         title = req.body.title;
         content = req.body.content;
-
+        // imageUrl = req.file.path;
+        const imageUrl = req.file.path.replace("\\" ,"/");
         result = await new Post({
             title:title,
             content:content,
-            imageUrl:"images/Smiley_Face.jpg",
+            imageUrl:imageUrl,
             creator:{
                 name:"DEEPAK"
             }
@@ -72,7 +78,7 @@ exports.createPost=async (req,res,next)=>{
         })
     }catch(error){
         // console.log("Iam in Catch block");
-        // // console.log(Error);
+        console.log(Error);
         // console.log(error);
         // if(error.statusCode===422){
         //     console.log("Iam in 422 if blok of catch")
@@ -91,7 +97,7 @@ exports.createPost=async (req,res,next)=>{
 exports.getPost = async (req,res,next)=>{
   const error = validationResult(req);
   const postId = req.params.postId;
-  // console.log(postId);
+
   try{
     post = await Post.findById(postId);
     const error = validationResult(res);
@@ -116,4 +122,78 @@ exports.getPost = async (req,res,next)=>{
 
   }
 
+}
+
+exports.updatePost=async (req,res,next)=>{
+  const postId = req.params.postId;
+    console.log(postId);
+  const title = req.body.title;
+  const content = req.body.content;
+  let imageUrl = req.body.imageUrl;
+  if(req.file){
+    imageUrl = req.file.path.replace("\\" ,"/");
+  }
+
+
+  try{
+    if(!imageUrl){
+      // res.status(404).json({ message:"No File Picked" });
+      throw Error("No File Picked")
+    }
+
+    post = await Post.findById(postId);
+
+    const error = validationResult(res);
+    if(post===null){
+
+        res.status(404).json({ message:"Not able to Fetch Post from DB" });
+       throw new Error("No Response")
+
+
+    }
+
+    if(imageUrl!==post.imageUrl){
+      clearimage(post.imageUrl)  // here we are deleting old post image.
+    }
+    post.title = title;
+    post.imageUrl = imageUrl;
+    post.content = content;
+    result = await post.save();
+    // console.log(post);
+    res.status(200).json({message:"Post Updated",post:result})
+    return result;
+  }
+
+    catch(error){
+      console.log(error);
+      if(error ==="No File Picked"){
+        console.log("In catch if block")
+        error.statusCode=404;
+        next(error);
+      }
+
+
+    }
+}
+
+
+exports.deletePost=async (req,res,next)=>{
+  const postId = req.params.postId;
+  try{
+    post = await Post.findById(postId);
+    if(!post){
+      res.status(404).json({message:"No post Found"});
+    }
+    clearimage(post.imageUrl);
+    result = await Post.findByIdAndRemove(postId);
+    res.status(200).json({message:"Deleted postd"});
+
+  }catch(e){
+
+  }
+}
+
+const clearimage = (filepath)=>{
+  filepath = path.join(__dirname,'..',filepath);
+  fs.unlink(filepath,error=>{console.log(error)})
 }

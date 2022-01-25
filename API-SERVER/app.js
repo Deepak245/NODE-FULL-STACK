@@ -3,6 +3,8 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const multer = require("multer");
+const { v4: uuidv4 } = require('uuid');
 
 const feedRoutes = require("./Router/feedRouter");
 
@@ -10,8 +12,25 @@ const feedRoutes = require("./Router/feedRouter");
 
 
 const app = express();
+const fileStorage = multer.diskStorage({
+  destination:(req,file,cb)=>{
+    cb(null,'images');
+  },
+  filename:(req,file,cb)=>{
+     // cb(null,new Date().toISOString()+'-'+file.originalname);
+        cb(null, uuidv4())
+  }
+});
 
+const fileFilter = (req,file,cb)=>{
+  if(file.mimetype === 'image/png' || file.mimetype ==='image/jpg' || file.mimetype ==='image/jpeg'){
+    cb(null,true);
+  }else{
+    cb(null,false);
+  }
+}
 app.use(bodyParser.json());
+app.use(multer({storage:fileStorage,filefilter:fileFilter}).single('image'))
 app.use((req,res,next)=>{
     res.setHeader("Access-Control-Allow-Origin","*"); // allows all the websites
     res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,PATCH,DELETE,OPTIONS");
