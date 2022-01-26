@@ -7,6 +7,7 @@ const multer = require("multer");
 const { v4: uuidv4 } = require('uuid');
 
 const feedRoutes = require("./Router/feedRouter");
+const authRoutes = require("./Router/authRouter");
 
 
 
@@ -41,6 +42,7 @@ app.use((req,res,next)=>{
 
 app.use("/images",express.static(path.join(__dirname,"images")));
 app.use("/feed",feedRoutes);
+app.use("/auth",authRoutes);
 
 
 
