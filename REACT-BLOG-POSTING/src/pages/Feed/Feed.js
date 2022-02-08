@@ -38,6 +38,7 @@ class Feed extends Component {
   }
 
   loadPosts = direction => {
+    console.log("Authorized Token"+this.props.token)
     if (direction) {
       this.setState({ postsLoading: true, posts: [] });
     }
@@ -50,7 +51,12 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch('http://localhost:8080/feed/posts')
+    console.log("Authorized Token"+this.props.token)
+    fetch('http://localhost:8080/feed/posts',{
+      headers:{
+        Authorization:"Bearer "+this.props.token
+      }
+    })
       .then(res => {
         
         if (res.status !== 200) {
@@ -131,7 +137,10 @@ class Feed extends Component {
       //   title:postData.title,
       //   content:postData.content
       // }),
-      body:formData
+      body:formData,
+      headers:{
+        Authorization:"Bearer "+this.props.token
+      }
       // headers:{
       //   "content-type":"application/json"
       // }
@@ -188,7 +197,10 @@ class Feed extends Component {
   deletePostHandler = postId => {
     this.setState({ postsLoading: true });
     fetch('http://localhost:8080/feed/post/'+postId,{
-      method:"DELETE"
+      method:"DELETE",
+      headers:{
+        Authorization:"Bearer "+this.props.token
+      }
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
