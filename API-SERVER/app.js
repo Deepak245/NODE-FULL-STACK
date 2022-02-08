@@ -1,5 +1,5 @@
 const path = require("path");
-
+const passport = require("passport");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -13,6 +13,12 @@ const authRoutes = require("./Router/authRouter");
 
 
 const app = express();
+
+app.use(express.urlencoded({extended: false}));
+app.use(bodyParser.json());
+app.use(passport.initialize());
+
+
 const fileStorage = multer.diskStorage({
   destination:(req,file,cb)=>{
     cb(null,'images');
@@ -31,9 +37,9 @@ const fileFilter = (req,file,cb)=>{
   }
 }
 
- app.use(express.urlencoded({extended: false}));
-app.use(bodyParser.json());
+
 app.use(multer({storage:fileStorage,filefilter:fileFilter}).single('image'))
+
 app.use((req,res,next)=>{
     res.setHeader("Access-Control-Allow-Origin","*"); // allows all the websites
     res.setHeader("Access-Control-Allow-Methods","GET,POST,PUT,PATCH,DELETE,OPTIONS");

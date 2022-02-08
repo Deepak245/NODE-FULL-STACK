@@ -5,6 +5,8 @@ const router = express.Router();
 
 const feedController = require("../Controller/feedController");
 const validations = require("./sequentialValidation");
+const passport = require("passport");
+require("../MiddleWare/passport");
 
 // const validate = validations => {
 //     return async (req, res, next) => {
@@ -22,7 +24,7 @@ const validations = require("./sequentialValidation");
 //     };
 //   };
 
-router.get("/posts",feedController.getPosts);
+router.get("/posts",passport.authenticate('jwt',{session:false}),feedController.getPosts);
 
 
 router.put('/post/:postId',validations.validate([
