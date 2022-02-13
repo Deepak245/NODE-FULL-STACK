@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const {validationResult} =require("express-validator");
 const Post = require("../Modals/postModalMongo");
+const User = require("../Modals/userModal");
 
 // exports.getPosts=(req,res,next)=>{
 //     res.status(200).json({
@@ -20,6 +21,14 @@ exports.getPosts=async (req,res,next)=>{
    try{
      posts = await Post.find();
      // console.log(posts);
+     // console.log(req.user._id.valueOf())
+     userid = req.user._id.valueOf();
+     // console.log(userid);
+     // console.log(req.user.name);
+     // console.log(JSON.Stringfy(req.user.name));
+     // User.findOne({id: jwt_payload.sub}
+     const username = await User.findOne({id:userid});
+     console.log(username.name);
      res
         .status(200)
         .json({ message: 'Fetched posts successfully.', posts: posts });
@@ -57,24 +66,41 @@ exports.createPost=async (req,res,next)=>{
           res.status(422).json({ message:"No File in Request" });
           throw new Error("No File in Request")
         }
+        // const titlename = JSON.Stringfy(req.user.name);
+        const username = await User.findOne({id:userid});
+        console.log(username);
         title = req.body.title;
         content = req.body.content;
         // imageUrl = req.file.path;
+        // const user = await User.findOne({id:userid});
+        // console.log(user.name);
         const imageUrl = req.file.path.replace("\\" ,"/");
-        result = await new Post({
+        postresult = await new Post({
             title:title,
             content:content,
             imageUrl:imageUrl,
-            creator:{
-                name:"DEEPAK"
-            }
+            creator:user.name,
         })
         .save();
-
+        const creator="";
+        // result2 =user.posts.push(result);
+        const result2 = await User.findOne({id:userid}).then(
+          user=>{
+            console.log("Iam from await"+user);
+            creator:user;
+            user.posts.push(postresult);
+            user.save();
+          }
+        );
+        // result2 = await new User({
+        //   posts:user.posts.push(result)
+        // }).save();
+         // result2= await User.save();
         res.status(201).json({
             message:"Post Created Successfully",
             // post:{id:new Date().toISOString(),title :title,content:content} before adding to data base
-            post: result
+            post: postresult,
+            creator:{_id:creator._id,name:creator.name}
         })
     }catch(error){
         // console.log("Iam in Catch block");
@@ -152,6 +178,8 @@ exports.updatePost=async (req,res,next)=>{
 
     }
 
+
+
     if(imageUrl!==post.imageUrl){
       clearimage(post.imageUrl)  // here we are deleting old post image.
     }
@@ -186,6 +214,14 @@ exports.deletePost=async (req,res,next)=>{
     }
     clearimage(post.imageUrl);
     result = await Post.findByIdAndRemove(postId);
+    result2 = await User.findOne({id:userid}).then(
+      user=>{
+
+        user.posts.pull(postId);
+        user.save();
+      }
+    );
+
     res.status(200).json({message:"Deleted postd"});
 
   }catch(e){

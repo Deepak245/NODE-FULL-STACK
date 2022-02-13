@@ -32,7 +32,7 @@ router.put('/post/:postId',validations.validate([
         body("content").trim().isLength({min:5})
     ]),feedController.updatePost);
 
-router.post("/post",
+router.post("/post",passport.authenticate('jwt',{session:false}),
 validations.validate([
         body("title").trim().isLength({min:5}),
         body("content").trim().isLength({min:5})
@@ -41,10 +41,10 @@ validations.validate([
 
 
 
-router.get('/post/:postId',feedController.getPost);
+router.get('/post/:postId',passport.authenticate('jwt',{session:false}),feedController.getPost);
 
 
-router.delete('/post/:postId',feedController.deletePost);
+router.delete('/post/:postId',passport.authenticate('jwt',{session:false}),feedController.deletePost);
 
 
 
