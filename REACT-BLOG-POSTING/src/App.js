@@ -58,16 +58,15 @@ class App extends Component {
 
   loginHandler = (event, authData) => {
     event.preventDefault();
-    // console.log(authData)
     this.setState({ authLoading: true });
-    fetch('http://localhost:8080/auth/login',{
-      method:"POST",
-      headers:{
-        'Content-Type':'application/json'
+    fetch('http://localhost:8080/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      body:JSON.stringify({
-        email:authData.email,
-        password:authData.password
+      body: JSON.stringify({
+        email: authData.email,
+        password: authData.password
       })
     })
       .then(res => {
@@ -100,7 +99,7 @@ class App extends Component {
       .catch(err => {
         console.log(err);
         this.setState({
-          isAuth: true,
+          isAuth: false,
           authLoading: false,
           error: err
         });
@@ -108,19 +107,17 @@ class App extends Component {
   };
 
   signupHandler = (event, authData) => {
- 
     event.preventDefault();
     this.setState({ authLoading: true });
-    fetch('http://localhost:8080/auth/signup',{
-      method:'PUT',
-      headers:{
-        'Content-Type':'application/json'
+    fetch('http://localhost:8080/auth/signup', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      body:JSON.stringify({
-        email:authData.signupForm.email.value,
-        password:authData.signupForm.password.value,
-        name:authData.signupForm.name.value
-        
+      body: JSON.stringify({
+        email: authData.signupForm.email.value,
+        password: authData.signupForm.password.value,
+        name: authData.signupForm.name.value
       })
     })
       .then(res => {
