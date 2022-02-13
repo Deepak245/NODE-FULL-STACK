@@ -3,6 +3,7 @@ const path = require("path");
 const {validationResult} =require("express-validator");
 const Post = require("../Modals/postModalMongo");
 const User = require("../Modals/userModal");
+const io = require("../socket");
 
 // exports.getPosts=(req,res,next)=>{
 //     res.status(200).json({
@@ -19,21 +20,25 @@ const User = require("../Modals/userModal");
 // }
 exports.getPosts=async (req,res,next)=>{
    try{
-     posts = await Post.find();
+     posts = await Post.find().populate("creator");
      // console.log(posts);
      // console.log(req.user._id.valueOf())
-     userid = req.user._id.valueOf();
+     // userid = req.user._id.valueOf();
      // console.log(userid);
      // console.log(req.user.name);
      // console.log(JSON.Stringfy(req.user.name));
      // User.findOne({id: jwt_payload.sub}
-     const username = await User.findOne({id:userid});
-     console.log(username.name);
+     // const username = await User.findOne({id:userid});
+     // console.log(username.name);
      res
         .status(200)
         .json({ message: 'Fetched posts successfully.', posts: posts });
    }
    catch(error){
+     if(!error.statusCode){
+       error.statusCode=500;
+
+     }
      next(error);
    }
     // res.status(200).json({
@@ -67,8 +72,10 @@ exports.createPost=async (req,res,next)=>{
           throw new Error("No File in Request")
         }
         // const titlename = JSON.Stringfy(req.user.name);
-        const username = await User.findOne({id:userid});
-        console.log(username);
+        // userid = req.user._id.valueOf();
+        userid = req.user._id.toString()
+        const user = await User.findOne({id:userid});
+        console.log(user.name);
         title = req.body.title;
         content = req.body.content;
         // imageUrl = req.file.path;
@@ -96,6 +103,7 @@ exports.createPost=async (req,res,next)=>{
         //   posts:user.posts.push(result)
         // }).save();
          // result2= await User.save();
+         io.getIO().emit('posts',{action:'create',post:{...postresult._doc,creator:{_id:user.id,name:user.name}}});
         res.status(201).json({
             message:"Post Created Successfully",
             // post:{id:new Date().toISOString(),title :title,content:content} before adding to data base
@@ -152,7 +160,7 @@ exports.getPost = async (req,res,next)=>{
 
 exports.updatePost=async (req,res,next)=>{
   const postId = req.params.postId;
-    console.log(postId);
+    // console.log(postId);
   const title = req.body.title;
   const content = req.body.content;
   let imageUrl = req.body.imageUrl;
@@ -167,7 +175,7 @@ exports.updatePost=async (req,res,next)=>{
       throw Error("No File Picked")
     }
 
-    post = await Post.findById(postId);
+    post = await Post.findById(postId).populate("creator");
 
     const error = validationResult(res);
     if(post===null){
@@ -186,8 +194,9 @@ exports.updatePost=async (req,res,next)=>{
     post.title = title;
     post.imageUrl = imageUrl;
     post.content = content;
-    result = await post.save();
+    const result = await post.save();
     // console.log(post);
+    io.getIO().emit('posts',{action:'update',post:result})
     res.status(200).json({message:"Post Updated",post:result})
     return result;
   }
@@ -221,7 +230,7 @@ exports.deletePost=async (req,res,next)=>{
         user.save();
       }
     );
-
+    io.getIO().emit('posts',{action:'delete',post:postId})
     res.status(200).json({message:"Deleted postd"});
 
   }catch(e){

@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const { v4: uuidv4 } = require('uuid');
 
+
 const feedRoutes = require("./Router/feedRouter");
 const authRoutes = require("./Router/authRouter");
 
@@ -62,5 +63,21 @@ app.use((error,req,res,next)=>{
 });
 
 mongoose.connect("mongodb+srv://amrith:Password123@cluster-onlinefeeds.r54nq.mongodb.net/Cluster-OnlineFeeds?retryWrites=true&w=majority")
-.then(result=>app.listen(8080))
-.catch(err=>console.log(err));
+// .then(result=>{
+//     const server = app.listen(8080);
+//     const io = require('socket.io')(server);
+//     io.on('connection',socket=>{
+//       console.log("Client Connected");
+//     });
+//   })
+// .catch(err=>console.log(err));
+.then(result => {
+    const server = app.listen(8080);
+    const io = require("./socket").init(server);
+
+    // console.log("After ip");
+        io.on('connection',socket=>{
+          console.log("Client Connected");
+        });
+  })
+  .catch(err => console.log(err));

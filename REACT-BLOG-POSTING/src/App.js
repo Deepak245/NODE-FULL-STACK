@@ -100,7 +100,7 @@ class App extends Component {
       .catch(err => {
         console.log(err);
         this.setState({
-          isAuth: false,
+          isAuth: true,
           authLoading: false,
           error: err
         });

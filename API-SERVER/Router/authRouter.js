@@ -5,6 +5,9 @@ const validations = require("./sequentialValidation");
 const authController = require("../Controller/authController");
 const User = require("../Modals/userModal");
 
+const passport = require("passport");
+require("../MiddleWare/passport");
+
 
 
 router.put('/signup',[
@@ -21,6 +24,8 @@ router.put('/signup',[
     ],authController.signUp);
 
 router.post("/login",authController.login);
+
+router.get('/status', passport.authenticate('jwt',{session:false}), authController.getUserStatus);
 
 module.exports = router;
 
