@@ -1,0 +1,22 @@
+https://dev.to/hasusozam/passport-jwt-with-graphql-3gdj
+
+https://rachitabansal.medium.com/graphql-and-authentication-using-passport-js-d3f6b06d1f69
+
+https://expressjs.com/en/guide/using-middleware.html----User of Next in in express
+
+
+
+{
+schema:graphqlSchema,
+rootValue:graphqlResolver,
+graphiql:true,
+customFormatErrorFn(err){
+  if(!err.originalError){
+    return err;
+  }
+  const data = err.originalError.data;
+    const message = err.message || 'An error occurred.';
+    const code = err.originalError.code || 500;
+    return { message: message, status: code, data: data };
+}
+}
