@@ -4,7 +4,7 @@ https://rachitabansal.medium.com/graphql-and-authentication-using-passport-js-d3
 
 https://expressjs.com/en/guide/using-middleware.html----User of Next in in express
 
-
+how do we add request parameters in passport js
 
 {
 schema:graphqlSchema,

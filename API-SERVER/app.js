@@ -9,6 +9,7 @@ const { graphqlHTTP } = require('express-graphql');
 
 
 const auth= require("./MiddleWare/passport");
+const clearImage = require("./Util/userNotFound");
 
 const graphqlSchema = require("./GraphQl/schema");
 const graphqlResolver = require("./GraphQl/resolvers");
@@ -60,16 +61,44 @@ app.use((req,res,next)=>{
 
 
 app.use("/images",express.static(path.join(__dirname,"images")));
-// passport.authenticate('jwt',{session:false},(err,user)=>{next(user);});
+
+app.put("/post-image",(req,res,next)=>{
+
+  if(!req.file){
+    return res.status(200).json({message:"No File Provided"});
+  }
+  if(req.body.oldpath){
+    clearImage(req.body.oldpath)
+  }
+  return res.status(201).json({message:"File Stored",filepath:req.file.path});
+});
 
 app.use(passport.initialize());
-app.use(auth);
+// app.use(auth);
+
+app.use('/graphql', (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+
+    if (user) {
+      req.userId = user._id.toString(),
+      req.user = user.email,
+      req.isAuth = true
+      // console.log(req.userId)
+    }else{
+      req.isAuth = false;
+      // console.log("From passport Auth"+req.isAuth) // this will trigger when we send request from graphql as when graphql we are not sending request
+    }
+
+    next()
+  })(req, res, next)
+})
 app.use("/graphql",graphqlHTTP({
-  // passport.auth('jwt',{session:false})
+
+
   schema:graphqlSchema,
   rootValue:graphqlResolver,
   graphiql:true,
-  context:{user : "test@test"},
+  // context:{user : "test@test"},
   customFormatErrorFn(err){
     if(!err.originalError){
       return err;
@@ -95,3 +124,9 @@ mongoose.connect("mongodb+srv://amrith:Password123@cluster-onlinefeeds.r54nq.mon
 
   })
   .catch(err => console.log(err));
+
+
+const clearimage = (filepath)=>{
+  filepath = path.join(__dirname,'..',filepath);
+  fs.unlink(filepath,error=>{console.log(error)})
+}

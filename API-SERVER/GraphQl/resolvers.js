@@ -7,6 +7,7 @@ const passport = require("passport");
 require("../MiddleWare/passport");
 
 const {userFound} = require("../Util/userNotFound.js")
+const {clearImage} = require("../Util/userNotFound");
 
 
 module.exports={
@@ -62,16 +63,9 @@ module.exports={
     const token = jwt.sign(payload,"sruthi",{expiresIn:"1d"})
     return {token:token,userId:user._id.toString()}
   },
-  createPost:async ({postInput},req,res,next)=>{
+  createPost:async ({postInput},req)=>{
 
-    passport.authenticate('jwt', { session: false },(err,user,info)=>{
-      if (user) {
-             req.user = user;
-             console.log(user);
-           }
-
-           // next();
-    })(req, res);
+    console.log("In Created Post")
     const errors = [];
     if(validator.isEmpty(postInput.title)|| !validator.isLength(postInput.title,{min:5})){
       errors.push({message:"Title is Invalid"});
@@ -88,12 +82,149 @@ module.exports={
       error.code = 422;
       throw error;
     }
+    const user = await User.findById(req.userId);
+    // console.log("Founded user"+user.name)
+    if(!user){
+      const error = new Error("InValid User");
+      error.code = 401;
+      throw error;
+    }
     const post = new Post({
       title:postInput.title,
       content:postInput.content,
-      imageUrl:postInput.imageUrl
+      imageUrl:postInput.imageUrl,
+      creator:user
     });
     const createdPost = await post.save();
+    user.posts.push(createdPost);
+    await user.save();
+    // console.log(...createdPost._doc)
     return {...createdPost._doc,_id:createdPost._id.toString(),createdAt:createdPost.createdAt.toISOString(),updatedAt:createdPost.updatedAt.toISOString()};
+  },
+  posts:async ({page},req)=>{
+    // console.log("inGet post")
+    // console.log("From Post Request"+req.user);
+    // console.log("From Post Request"+req.isAuth);
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    if(!page){
+      page=1;
+    }
+    const perpage = 2;
+    const totalPosts = await Post.find().countDocuments();
+    const posts = await Post.find()
+            .sort({createdAt:-1})
+            .skip((page-1)*perpage)
+            .limit(perpage)
+            .populate("creator");
+
+    // console.log("These are posts");
+
+    // console.log(totalPosts);
+    return {posts:posts.map(p=>{
+
+      return {...p._doc,_id:p._id.toString(),createdAt:p.createdAt.toISOString(),updatedAt:p.updatedAt.toISOString()}
+    }),totalPosts:totalPosts};
+
+
+  },
+  post:async ({id},req)=>{
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    const post = await Post.findById(id).populate("creator");
+    if(!post){
+      const error = new Error("Post Not Found");
+      error.code = 404;
+      throw error;
+    }
+    return {...post._doc,_id:post.id.toString(),createdAt:post.createdAt.toISOString(),updatedAt:post.updatedAt.toISOString()}
+  },
+  updatePost:async ({id,postInput},req)=>{
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    // console.log("In update Post")
+    const post = await Post.findById(id).populate("creator");
+    if(!post){
+        const error = new Error("Post Not Found");
+        error.code = 404;
+        throw error;
+    }
+    if(post.creator._id.toString()!==req.userId){
+      const error = new Error("Un Authorized Edit");
+      error.code = 403;
+      throw error;
+    }
+    post.title = postInput.title;
+    post.content = postInput.content;
+    console.log(postInput.imageUrl);
+    if(postInput.imageUrl !== "undefined"){
+      post.imageUrl = postInput.imageUrl;
+    }
+    const updatedPost = await post.save();
+    return {...updatedPost._doc,_id:updatedPost._id.toString(),createdAt:updatedPost.createdAt.toISOString(),updatedAt:updatedPost.updatedAt.toISOString()}
+
+  },
+  deletePost:async ({id},req)=>{
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    const post = await Post.findById(id);
+    const user = await User.findById(req.userId);
+    if(!post){
+        const error = new Error("Post Not Found");
+        error.code = 404;
+        throw error;
+    }
+    console.log(post.imageUrl);
+      clearImage(post.imageUrl);
+      await Post.findByIdAndRemove(id);
+      user.posts.pull(id);
+      await user.save();
+      return true;
+  },
+  user:async (args,req)=>{
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    const user = await User.findById(req.userId);
+    if(!user){
+      const error = new Error("User Not Found");
+      error.code = 401;
+      throw error;
+    }
+    return {...user._doc,_id:user._id.toString()}
+  },
+  updateStatus:async({status},req)=>{
+    console.log(status)
+    if(!req.isAuth){
+      const error = new Error("Not Authenticated");
+      error.code = 401;
+      throw error;
+    }
+    const user = await User.findById(req.userId);
+    if(!user){
+      const error = new Error("User Not Found");
+      error.code = 401;
+      throw error;
+    }
+
+    user.status = status;
+    await user.save();
+    return {...user._doc,_id:user._id.toString()};
+
   }
+
 }

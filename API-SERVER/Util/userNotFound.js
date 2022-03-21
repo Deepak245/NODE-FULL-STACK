@@ -1,4 +1,6 @@
 const validator = require("validator");
+const fs = require("fs");
+const path = require("path");
 
  const userFound =(user)=>{
 
@@ -12,4 +14,10 @@ const validator = require("validator");
 }
 
 
+const clearimage = (filepath)=>{
+  filepath = path.join(__dirname,'..',filepath);
+  fs.unlink(filepath,error=>{console.log(error)})
+}
+
 exports.userFound = userFound;
+exports.clearImage = clearimage;
